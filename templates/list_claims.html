@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% import 'macros.html' as macros %}
+{% block title %}Claims{% endblock %}
+{% block content %}
+<div>
+  {% if user_can("add_claim") %}
+  <div>
+    <form method="POST" id="add_claim">
+      <label for="text">Text:</label>
+      <input type="text" name="text" value="{{text}}"/>
+      {{macros.select_node_type('standalone_generic')}}
+      <button type="submit" value="Add_claim">Add claim</button>
+    </form>
+    <a href="./claim/upload">Bulk upload</a>
+  </div>
+  {% endif %}
+  {% if claim_indices | length %}
+    <h2>Claim indices:</h2>
+    <ol>
+      {% for claimi in claim_indices %}
+        <li>
+          <!-- {{claimi.__dict__}} -->
+          {{claimi.text}}
+          <form action="{{collection.path}}/claim_index/{{claimi.id}}" method="get">
+            <button type="submit" name="descendants" class="btn btn-sm btn-outline-primary">Descendants</button>
+            <button type="submit" name="direct" class="btn btn-sm btn-outline-primary">Direct claims</button>
+            <input type="checkbox" name="reload">Reload claims</input>
+          </form>
+        </li>
+      {% endfor %}
+    </ol>
+  {%endif%}
+  <h2>Claims:</h2>
+  <ol start="{{offset+1}}">
+    {% for claim, num_analysis in claims %}
+      <li>
+        <a href="{{collection.path}}/claim/{{claim.id}}">{{claim.text}}</a>
+        {% if claim.scale != 'standalone' %}
+        [{{standalone_type_names[claim.scale]}}]
+        {% endif %}
+      ({{num_analysis}} analysis)
+      </li>
+    {% else %}
+      <li>No claim yet</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endblock %}
+{% block pagination %}
+{% if claims %}
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link {% if prev=='' %}disabled{% endif %}" href="{{collection.path}}/claim?start={{prev}}&limit={{limit}}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item">
+      <a class="page-link {% if not next %}disabled{% endif %}" href="{{collection.path}}/claim?start={{next}}&limit={{limit}}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div>
+  <h2>Documents</h2>
+  <table class="table">
+    <tr>
+      <th scope="col">Status</th>
+      <th scope="col">Number of documents</th>
+      {% for model in models %}
+      <th scope="col">{{model}}</th>
+      {% endfor %}
+    </tr>
+    {% for (doc_class, emb_counts) in doc_data %}
+    <tr>
+      <td>{{ doc_class.load_status }}</td>
+      <td>{{ doc_class.documents }}</td>
+      {% for model in models %}
+      <td scope="col">{{ emb_counts[model] }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+  <h2>Fragments</h2>
+  <table class="table">
+    <tr>
+      <th scope="col">Kind</th>
+      <th scope="col">Count</th>
+      <th scope="col"># With analysis</th>
+      <th scope="col">total # analysis</th>
+      {% for model in models %}
+      <th scope="col">{{model}}</th>
+      {% endfor %}
+    </tr>
+    {% for (fragment_class, emb_counts) in fragment_data %}
+    <tr>
+      <td>{{ fragment_class.scale }}</td>
+      <td>{{ fragment_class.fragments }}</td>
+      <td>{{ fragment_class.analyzed_distinct }}</td>
+      <td>{{ fragment_class.analyzed }}</td>
+      {% for model in models %}
+      <td scope="col">{{ emb_counts[model] }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

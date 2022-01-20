@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% import 'macros.html' as macros %}
+{% block title %}Claim{% endblock %}
+{% block content %}
+<div>
+  {{ macros.show_neighbourhood(claim_nghd, collection, '') }}
+  <p>
+    <ol start="{{offset+1}}">
+    {% for analysis, source, document in related_analysis %}
+        <li>
+          Related to:
+            <cite class="paragraph">{{source.text}}</cite><br/>
+            at para <a href="{{collection.path}}/doc/{{document.id}}#p_{{source.position}}">{{source.position}}</a> of <a href="{{collection.path}}/doc/{{document.id}}">{{document.title or document.url}}</a><br/>
+        </li>
+    {% else %}
+      <p style="font-size:small;">This theme was not yet used for analysis</p>
+    {% endfor %}
+    </ol>
+    {% if claim.analysis_id %}
+      <p>Built using prompt <a href="/prompt/{{claim.from_analysis.analyzer.nickname}}">{{claim.from_analysis.analyzer.nickname}}</a></p>
+    {%endif%}
+    <a href="{{collection.path}}/claim/{{claim.id}}/search">Claim search</a>
+    {% if user_can("bigdata_query") %}
+     • <a href="{{collection.path}}/claim/{{claim.id}}/gdelt">Gdelt search</a>
+    {% endif %}
+
+    {% if prompt_analyzers and user_can('openai_query') %}
+    <div>
+    <form action="{{collection.path}}/claim/{{claim.id}}/simple_prompt" method="POST">
+      <select name="analyzer_nickname" id="analyzer_nickname">
+        {% for analyzer_id, nickname in prompt_analyzers %}
+        <option>{{nickname}}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Apply prompt</button>
+    </form>
+    </div>
+    {% endif %}
+    {%if claim.external_id %}
+    <a target="debatemap" href="{{collection.path}}/claim/{{claim.id}}/debatemap">debatemap</a>
+    {% elif collection.params.get('export_debatemap', False) and user_can('add_claim') %}
+      {% if can_export %}
+      <form method="POST" action="{{collection.path}}/claim/{{claim.id}}/export_dm">
+        <button type="action">export to debatemap</button>
+      </form>
+      {% else %}
+        <p>cannot export to debatemap: Export at least one parent first.</p>
+      {% endif %}
+    {% endif %}
+
+</div>
+{% endblock %}
+{% block pagination %}
+{% if related_analysis %}
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link {% if prev=='' %}disabled{% endif %}" href="{{collection.path}}/claim/{{claim.id}}?start={{prev}}&limit={{limit}}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item">
+      <a class="page-link {% if not next %}disabled{% endif %}" href="{{collection.path}}/claim/{{claim.id}}?start={{next}}&limit={{limit}}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+{% endif %}
+{%endblock%}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Document{% endblock %}
+{% block content %}
+<div>
+  {% if doc.return_code == 200 %}
+  <a href="{{doc.url}}">{{doc.title or doc.url}}</a>
+  <a href="{{collection.path}}/doc/{{doc.id}}/raw">file</a>
+  {% if doc.text_identity %}
+    (<a href="{{collection.path}}/doc/{{doc.id}}/text">text</a>: {{doc.text_size // 1024}} Kb)
+  {% endif %}
+  {% if not has_embedding %}No embedding{%endif%}
+  {% if not public_contents %}
+  <p>This document is copyrighted, and access to the content is partial.</p>
+  {% endif %}
+  <ol>
+  {% for para in paras %}
+    <li value={{para.position}}><a name="p_{{para.position}}"></a>{{renderings[para.id]|safe}}</li>
+  {% endfor %}
+  </ol>
+  <ul>
+    {% for model in num_frag_embeddings %}
+      {% if num_frag_embeddings[model] > 0 %}
+      <li>{{model}}: {{num_frag_embeddings[model]}} embeddings</li>
+      {%endif%}
+    </li>
+    {%endfor%}
+  </ul>
+{% else %}
+  {{doc.url}} (error: {{doc.return_code}})
+{% endif %}
+</div>
+{% endblock %}

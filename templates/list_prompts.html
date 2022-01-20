@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Prompts{% endblock %}
+{% block content %}
+<div>
+  <ol>
+    {% for analyzer in analyzers %}
+      <li><a href="/prompt/{{analyzer.nickname}}">{{analyzer.nickname}}</a> <i>-{{analyzer.params['link_type']}}→</i> {{analyzer.params['node_type']}}<br/>
+        <p class="small_prompt">
+          {{analyzer.params['prompt']}}
+        </p>
+      </li>
+    {% else %}
+      <li>No prompt yet</li>
+    {% endfor %}
+  </ol>
+</div>
+{%if user_can('edit_prompts') %}
+<form method="POST">
+  <button type="submit">Add prompt</button>
+</form>
+{% endif %}
+{% endblock %}
+{% block pagination %}
+{% if prompts %}
+  <!-- ul class="pagination">
+    <li class="page-item">
+      <a class="page-link {% if prev=='' %}disabled{% endif %}" href="{{collection.path}}/doc?start={{prev}}&limit={{limit}}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item">
+      <a class="page-link {% if not next %}disabled{% endif %}" href="{{collection.path}}/doc?start={{next}}&limit={{limit}}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul -->
+{% endif %}
+{% endblock %}

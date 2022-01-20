@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Claim Clusters{% endblock %}
+{% block content %}
+<div>
+  <p>{{clusters|length}} clusters, {{missing}} claims outside clusters</p>
+  <p>Sizes:
+    {% for cluster in clusters %}
+    <a href="#c{{loop.index}}">{{ cluster | length }}</a>
+    {% else %}
+      <p>No clusters</p>
+    {% endfor %}
+  </p>
+  <form action="{{collection.path}}/claim/clusters" method="get">
+    <div class="form-group">
+      <label for="eps">Epsilon</label>
+      <input type="float" id="eps" name="eps" value="{{eps}}">
+      <label for="min_samples">Min samples</label>
+      <input type="number" id="min_samples" name="min_samples" value="{{min_samples}}">
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+    {% for cluster in clusters %}
+    <h3 id="c{{loop.index}}">Cluster {{loop.index}}: {{ cluster | length }} claims</h3>
+        <ul>
+            {% for claim_id, txt in cluster %}
+            <li>
+                <a href="{{collection.path}}/claim/{{claim_id}}">{{txt}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+      <p>No clusters</p>
+    {% endfor %}
+    </ol>
+</div>
+{%endblock%}

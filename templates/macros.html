@@ -1,0 +1,64 @@
+
+{% macro onclick(fname, id) -%}
+{%- if fname -%}
+onclick="return {{fname}}({{id}})"
+{%- endif -%}
+{%- endmacro -%}
+
+{% macro show_neighbourhood(nghd, collection, fname) -%}
+  <div id="neighbourhood">
+    <div id="nghd_parents"  style="font-size:small">
+    {% for path in nghd['parents'] %}
+    <p>
+      <span class="fr_type">[<a href="{{collection.path}}/claim/{{path[0].id}}" {{onclick(fname, path[0].id)}}">{{standalone_type_names[path[0].scale]}}</a>]</span>
+      <span class="fr_text">{{path[0].text}}</span>
+      {% if path.__len__() == 2 %}
+      <span class="ln_type">&lt;-({{link_type_names[path[1].link_type]}})-</span>
+      {% else %}
+      <span class="ln_type">&lt;-({{link_type_names[path[1].link_type]}})-[<a href="{{collection.path}}/claim/{{path[2].id}}" {{onclick(fname, path[2].id)}}">{{standalone_type_names[path[2].scale]}}</a>]-({{link_type_names[path[3].link_type]}})-</span>
+      {% endif %}
+    </p>
+    {% endfor %}
+    </div>
+    <div id="nghd_target" style="margin-left: 2.5em;font-size:large">
+      <span class="fr_type">[<a href="{{collection.path}}/claim/{{nghd['node'].id}}" {{onclick(fname, nghd['node'].id)}}">{{standalone_type_names[nghd['node'].scale]}}</a>]</span>
+      <span class="fr_text">{{nghd['node'].text}}</span>
+    </div>
+    <div id="nghd_children" style="margin-left: 5em; font-size:small">
+    {% for path in nghd['children'] %}
+    <p>
+      {% if path.__len__() == 2 %}
+      <span class="ln_type">&lt;-({{link_type_names[path[1].link_type]}})-</span>
+      {% else %}
+      <span class="ln_type">&lt;-({{link_type_names[path[3].link_type]}})-[<a href="{{collection.path}}/claim/{{path[2].id}}" {{onclick(fname, path[2].id)}}">{{standalone_type_names[path[2].scale]}}</a>]-({{link_type_names[path[1].link_type]}})-</span>
+      {% endif %}
+      <span class="fr_type">[<a href="{{collection.path}}/claim/{{path[0].id}}" {{onclick(fname, path[0].id)}}">{{standalone_type_names[path[0].scale]}}</a>]</span>
+      <span class="fr_text">{{path[0].text}}</span>
+    </p>
+    {% endfor %}
+    </div>
+  </div>
+{% endmacro %}
+
+
+{% macro select_node_type(current_node_type) %}
+  <label for="node_type">node type:</label>
+  <select id="node_type" name="node_type">
+    {% for id, name in visible_standalone_type_names.items() %}
+    <option {% if current_node_type == id %}selected{% endif %} value="{{id}}">{{name}}</option>
+    {%endfor%}
+  </select>
+{% endmacro %}
+
+{% macro link_form_elements(current_node_type, current_link_type, current_reverse) %}
+  <label for="link_type">Link type:</label>
+  <select id="link_type" name="link_type">
+    {% for id, name in link_type_names.items() %}
+    <option value="{{id}}" {% if current_link_type == id %}selected{% endif %}>{{name}}</option>
+    {% endfor %}
+  </select>
+  {{select_node_type(current_node_type)}}
+  <input type="checkbox"  id="backwards_link" name="backwards_link"
+  {%- if current_reverse %} checked{% endif -%}
+  > <label for="backwards_link">backwards link</label>
+{% endmacro %}

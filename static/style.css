@@ -1,0 +1,26 @@
+main > .container {
+  padding: 70px 5px;
+}
+
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+  color: darkgrey;
+
+}
+
+span.boundary {
+  background-color: yellow;
+}
+
+span.key_point {
+  background-color: orange;
+}
+
+span.kp_variant {
+  background-color: #fc5;
+}
+
+.hidden {
+  display: none;
+}

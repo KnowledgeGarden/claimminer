@@ -1,0 +1,50 @@
+-e git+https://github.com/maparent/langdetect.git@no_sample#egg=langdetect
+aiomcache
+aiomonitor
+aiokafka
+asyncpg
+asyncio-pool
+backoff
+beautifulsoup4
+Cython
+frozendict
+google-api-python-client
+google-api-core<2.9
+google-cloud-bigquery
+grpcio<1.49
+grpcio-status<1.49
+gql
+hashfs
+httpx
+hypercorn[uvloop]
+isodate
+keras
+langchain
+lxml
+openai
+passlib
+pdfminer.six
+pdfx
+protobuf<3.21
+pgvector
+psycopg2
+# PyPDF2
+pyamg
+pytest
+pyyaml
+quart
+quart-auth<0.9
+quart-CORS
+quart-jwt-extended
+quart-session
+redis
+simplejson
+spacy
+sqlalchemy[asyncio]
+tensorboard
+tensorflow-estimator
+tensorflow; sys_platform=="linux"
+tensorflow-macos; sys_platform=="darwin"
+tensorflow-metal; sys_platform=="darwin"
+tensorflow-text
+websockets

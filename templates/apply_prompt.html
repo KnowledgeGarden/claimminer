@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% import 'macros.html' as macros %}
+{% block title %}
+Prompt results
+{% endblock %}
+{% block script_content %}
+function loaded() {
+
+}
+function toggle_div(divname) {
+    const state = document.prompt['show_'+divname].checked;
+    document.getElementById(divname).className = (state)?'':'hidden';
+    document.getElementById('show_'+divname+'_label').className = (state)?'hide':'show';
+}
+function output_change(output_num) {
+
+}
+
+function save_claim(pos) {
+  document.prompt.saving.value=pos;
+  document.prompt.submit();
+}
+
+function export_claim(pos) {
+  document.prompt.exporting.value=pos;
+  document.prompt.submit();
+}
+
+
+{% endblock %}
+{% block content %}
+  <p>Analyzer: <a href="/prompt/{{analyzer.nickname}}">{{analyzer.nickname}}</a>
+     (<input name="show_analyzer" type="checkbox" onchange="toggle_div('analyzer')"/> <label id="show_analyzer_label" for="show_analyzer">show</label>)
+  </p>
+  <div id="analyzer" class="hidden">
+    <p>Prompt: {{analyzer.params['prompt']}}</p>
+  </div>
+  <p><label>Base {{theme.type_name}}: </label> {{theme.text}}</p>
+  {% if not theme.external_id %}
+  <form method="POST" action="{{collection.path}}/claim/{{theme.id}}/export_dm">
+    <button type="submit">export to debatemap</button>
+  </form>
+  {% endif %}
+<form method="POST" id="prompt" name="prompt">
+  <input type="hidden" name="continuation" value="true"/>
+  <input type="hidden" name="saving" value=""/>
+  <input type="hidden" name="exporting" value=""/>
+
+  {{ macros.show_neighbourhood(theme_nghd, collection, '') }}
+  {% if analyzer.name == 'fragment_prompt_analyzer' %}
+  <p>Fragments: (<input name="show_fragments" type="checkbox" onchange="toggle_div('fragments')"/> <label id="show_fragments_label" for="show_fragments">show</label>)</p>
+  <div id="fragments" class="hidden">
+    <ol>
+    {% for f in fragments.values() %}
+      <li value="f.id">(<a href="{{collection.path}}/doc/{{f.doc_id}}#p_{{f.position}}">{{f.id}}</a>) {{f.text}}</li>
+    {% endfor %}
+    </ol>
+  </div>
+  {% endif %}
+  <div id="results">
+    <h3>Prompt results:</h3>
+    <ol>
+    {% for r in analysis.results %}
+      <li>
+        {% if 'fragment_id' in r %}
+          {{r['text']}} (<a href="{{collection.path}}/claim/{{r['fragment_id']}}">{{r['fragment_id']}}</a>)
+          {% if related_nodes[r['fragment_id']].external_id %}
+            (<a target="debatemap" href="{{collection.path}}/claim/{{r['fragment_id']}}/debatemap">debatemap</a>)
+          {% elif collection and collection.params['export_debatemap'] and user_can("add_claim") and theme.external_id %}
+            <button onclick="export_claim({{loop.index}})" style="margin-right: 1em;">export to debatemap</button>
+          {% endif %}
+        {% else %}
+          <input type="text" name="text_{{loop.index}}" value="{{r['text']}}" onchange="output_change({{loop.index}})" style="width:80%"/>
+          {% if sources %}
+          [{% for source_id in r['sources'] %}
+          <a href="{{collection.path}}/claim/{{source_id}}" title="{{fragments[source_id].text}}">{{source_id}}</a>{% if not loop.last%}, {%endif%}
+          {% endfor %}]
+          {% endif %}
+          <button onclick="save_claim({{loop.index}})" style="margin-right: 1em;">save</button>
+          <!-- TODO: Look at neighbours, allow to link some neighbours to central claim? -->
+        {% endif %}
+      </li>
+    {%endfor%}
+    </ol>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Administration{% endblock %}
+
+{% macro permissions_flags(p, user, permissions_per_user) -%}
+{%- if collection -%}
+{%- if user.can(p) %} disabled {% endif -%}
+{%- if user.can(p) or (user.id in permissions_per_user and p in permissions_per_user[user.id].permissions) %}checked{% endif -%}
+{%- else -%}
+{%- if user.can(p) %} checked {% endif -%}
+{%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+<h2>
+  {% if collection %}
+  Permissions for {{collection.name}}
+  {% else %}
+  Global permissions
+  {% endif %}
+</h2>
+<div>
+  <form method="POST">
+  <table class="table">
+    <thead>
+    <tr>
+      <th scope="col">Username</th>
+      <th scope="col">email</th>
+      <th scope="col">confirmed</th>
+      <th scope="col">Access</th>
+      <th scope="col">Add documents</th>
+      <th scope="col">Add claims</th>
+      <th scope="col">BigData access</th>
+      <th scope="col">Use prompts</th>
+      <th scope="col">Edit prompts</th>
+      <th scope="col">Confirm claims</th>
+      <th scope="col">Admin</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+        <tr>
+          <td>
+            {{user.handle}}
+          </td>
+          <td>
+            {{user.email}}
+          </td>
+          <td>
+            <input type="checkbox" name="{{user.id}}_confirmed" {% if user.confirmed %}checked{% endif %} />
+          </td>
+          <td>
+            <input type="checkbox" name="{{user.id}}_access" {{permissions_flags('access', user, permissions_per_user)}}/>
+          </td>
+          <td>
+            <input type="checkbox" name="{{user.id}}_add_document" {{permissions_flags('add_document', user, permissions_per_user)}}/>
+          </td>
+          <td>
+            <input type="checkbox" name="{{user.id}}_add_claim" {{permissions_flags('add_claim', user, permissions_per_user)}}/>
+          </td>
+          <td>
+            <input type="checkbox" name="{{user.id}}_bigdata_query" {{permissions_flags('bigdata_query', user, permissions_per_user)}}/>
+          </td>
+          <td>
+            <input type="checkbox" name="{{user.id}}_openai_query" {{permissions_flags('openai_query', user, permissions_per_user)}}/>
+          </td>
+          <td>
+            <input type="checkbox" name="{{user.id}}_edit_prompts" {{permissions_flags('edit_prompts', user, permissions_per_user)}}/>
+          </td>
+          <td>
+            <input type="checkbox" name="{{user.id}}_confirm_claim" {{permissions_flags('confirm_claim', user, permissions_per_user)}}/>
+          </td>
+          <td>
+            <input type="checkbox" name="{{user.id}}_admin" {{permissions_flags('admin', user, permissions_per_user)}}/>
+          </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    <button type="submit" name="submit">Save</button>
+  </form>
+</div>
+{% endblock %}

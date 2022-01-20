@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Claim Index{% endblock %}
+{% block content %}
+<div>
+  {% if depth == 1 %}
+  Claims directly under {{ci.text}} (<a href="{{collection.path}}/claim_index/{{ci.id}}?depth=15">All claims</a>)
+  {% else %}
+  All claims under {{ci.text}} (<a href="{{collection.path}}/claim_index/{{ci.id}}?depth=1">Direct only</a>)
+  {% endif %}
+    <ol start="{{offset+1}}">
+    {% for claim in fragments %}
+      <li>
+        <a href="{{collection.path}}/claim/{{claim.id}}">{{claim.id}}</a> {{claim.text}} <a target="debatemap" href="{{collection.path}}/claim_index/{{ci.external_id}}/debatemap/{{claim.external_id}}?depth={{depth}}">in debatemap</a>
+      </li>
+    {% else %}
+      <li>No claim yet</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endblock %}
+{% block pagination %}
+{% if fragments %}
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link {% if prev=='' %}disabled{% endif %}" href="{{collection.path}}/claim_index/{{ci.id}}?depth={{depth}}&start={{prev}}&limit={{limit}}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item">
+      <a class="page-link {% if not next %}disabled{% endif %}" href="{{collection.path}}/claim_index/{{ci.id}}?depth={{depth}}&start={{next}}&limit={{limit}}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+{% endif %}
+{% endblock %}

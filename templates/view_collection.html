@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Collections{% endblock %}
+{% block script_content %}
+function apply_show_div(toggle_id) {
+  const checkbox = document.getElementById(toggle_id);
+  const div = document.getElementById(toggle_id+"_div");
+  div.className = (checkbox.checked)?'':'hidden';
+}
+function loaded() {
+  apply_show_div('export_debatemap');
+  apply_show_div('add_root');
+}
+{% endblock %}
+{% block content %}
+<div>
+  <h1>Collection <em>{{collection.name}}</em></h1>
+  <a href="/c/{{collection.name}}/doc">{{num_docs}} documents</a>, <a href="/c/{{collection.name}}/claim">{{num_frags}} claims</a>
+</div>
+{% if user_can('admin') %}
+<form name="edit" method="POST">
+  <input type="checkbox" name="ada2" id="ada2"
+  {% if 'txt_embed_ada_2' in collection.params.get('embeddings', []) %}checked{% endif %}
+  /><label for="ada2">Apply OpenAI embeddings</label>
+  <br/>
+  <input type="checkbox" name="export_debatemap" id="export_debatemap" onchange="apply_show_div('export_debatemap')"
+  {% if collection.params.get('export_debatemap', False) %}checked{% endif %}
+  /><label for="export_debatemap">Allow export to debatemap</label>
+  <div id="export_debatemap_div">
+    <label for="debatemap_map">Target map ID</label>
+    <input type="text" name="debatemap_map" value="{{collection.params.get('debatemap_map', None)}}">
+    <br/>
+    <label for="debatemap_node">Target parent node ID</label>
+    <input type="text" name="debatemap_node" value="{{collection.params.get('debatemap_node', None)}}">
+    <br/>
+    <label for="debatemap_policy">Access policy for new nodes</label>
+    <select name="debatemap_policy">
+      {% for id, name in access_policies.items() %}
+      <option value="{{id}}"
+      {% if collection.params.get('debatemap_policy', None) == id %}selected{% endif %}
+      >{{name}}</option>
+      {%endfor%}
+    </select>
+  </div>
+  <br/>
+  <input type="submit"/>
+</form>
+<form name="add_root_f" method="POST" action="{{collection.path}}/claim_index">
+<input type="checkbox" name="add_root" id="add_root" onchange="apply_show_div('add_root')"/><label for="add_root">Add an import root</label>
+<div id="add_root_div">
+  <label for="node_id">Map nickname</label>
+  <input type="text" name="map_nickname">
+  <br/>
+  <label for="map_id">Map ID</label>
+  <input type="text" name="map_id">
+  <br/>
+  <label for="node_id">Root node ID</label>
+  <input type="text" name="node_id">
+  <br/>
+  <input type="submit"/>
+</div>
+</form>
+{% endif %}
+{% endblock %}

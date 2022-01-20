@@ -1,0 +1,6 @@
+__pycache__
+*.pyc
+config.ini
+postgrest_*.conf
+files
+

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Documents{% endblock %}
+{% block content %}
+<div>
+  {% if user_can("add_document") %}
+  <p><a href="{{collection.path}}/doc/upload">Upload new documents</a></p>
+  {% endif %}
+  <ol start="{{offset+1}}">
+    {% for doc in docs %}
+      <li>
+        {% if doc.return_code == 200 %}
+          <a href="{{collection.path}}/doc/{{doc.id}}">{{doc.title or doc.url}}</a>
+          <a href="{{doc.url}}" target="_blank">link</a>
+          <a href="{{collection.path}}/doc/{{doc.id}}/raw">file</a>
+          {% if doc.text_identity %}
+            (<a href="{{collection.path}}/doc/{{doc.id}}/text">text</a>: {{doc.text_size // 1024}} Kb)
+          {% endif %}
+          {{num_paras[doc.id][0]}} paragraphs, {{num_paras[doc.id][1]}} embeddings
+        {% elif doc.load_status == "not_loaded" %}
+          {{doc.url}} (not loaded)
+        {% else %}
+          {{doc.url}} (error: {{doc.return_code}})
+        {% endif %}
+      </li>
+      {% else %}
+      <li>No document yet</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endblock %}
+{% block pagination %}
+{% if docs %}
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link {% if prev=='' %}disabled{% endif %}" href="{{collection.path}}/doc?start={{prev}}&limit={{limit}}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item">
+      <a class="page-link {% if not next %}disabled{% endif %}" href="{{collection.path}}/doc?start={{next}}&limit={{limit}}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,166 @@
+<html>
+<head>
+<script src="//d3js.org/d3.v7.min.js"></script>
+<script src="//d3js.org/d3-interpolate.v3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script id="data" type="json">
+  {{data | safe}}
+</script>
+<script id="keywords" type="json">
+  {{keyword_data | safe}}
+</script>
+<script id="similarities" type="json">
+  {{similarities | safe}}
+</script>
+<script id="debatemap" type="json">
+  {{external_ids | safe}}
+</script>
+<style>
+body {
+  background-image: url(/static/sl_cloud.png), linear-gradient(to bottom right, #042E49, black);
+  background-repeat: no-repeat;
+}
+label {
+  color: white;
+}
+.tooltip {
+  position: absolute;
+  width: 200px;
+  height: 28px;
+  pointer-events: none;
+  font-size: small;
+  color: white;
+  z-index: 1;
+}
+.kw {
+  position: absolute;
+  font-size: x-small;
+  color: #fff0c0;
+  cursor: none;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+}
+.dot {
+  fill: #8b9dab
+}
+.form-div {
+  bottom: 1ex;
+  position: absolute;
+}
+.bottom-form {
+  margin-block-end: 0;
+}
+</style>
+<script type="text/javascript">
+function start() {
+  const data = JSON.parse(document.getElementById("data").textContent),
+      texts = Object.fromEntries(data.map(function (d) {return [d.id, d.t]})),
+      keywords_text = document.getElementById('keywords').textContent.trim(),
+      keywords = keywords_text.length?JSON.parse(keywords_text):[],
+      similarities = JSON.parse(document.getElementById("similarities").textContent)
+      externalIds = JSON.parse(document.getElementById("debatemap").textContent),
+      all_data = data.concat(keywords),
+      kw_text = Object.fromEntries(keywords.map(function (k) {return [k.id, k.t]})),
+      margin = {top: 20, right: 20, bottom: 30, left: 40},
+      claimsDiv = d3.select("#claims"),
+      claimsDivDom = document.getElementById("claims"),
+      claimsDivRect = claimsDivDom.getBoundingClientRect(),
+      total_width = document.body.clientWidth,
+      total_height = document.body.clientHeight - claimsDivRect.top,
+      width = total_width - margin.left - margin.right,
+      height = total_height - margin.top - margin.bottom,
+      xValue = function(d) { return d.x;},
+      yValue = function(d) { return d.y;},
+      tValue = function(d) { return d.t;},
+      idValue = function(d) { return d.id;},
+      kidValue = function(d) { return "k"+d.id;},
+      idToN = Object.fromEntries(data.map(function (d, n) {return [d.id, n]})),
+      line = d3.line(),
+      xScale = d3.scaleLinear().range([0, width])
+        .domain([d3.min(all_data, xValue), d3.max(all_data, xValue)]),
+      yScale = d3.scaleLinear().range([0, height])
+        .domain([d3.min(all_data, yValue), d3.max(all_data, yValue)]),
+      xMap = function(d) { return xScale(xValue(d));}, // data -> display
+      yMap = function(d) { return yScale(yValue(d));}, // data -> display
+      xMapK = function(d) { return xScale(xValue(d)) + claimsDivRect.x + margin.left;}, // data -> display
+      yMapK = function(d) { return yScale(yValue(d)) + claimsDivRect.y + margin.top;}, // data -> display
+      tooltip = d3.select("#claims").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 1);
+  const svg = claimsDiv.append("svg")
+        .attr("width", total_width)
+        .attr("height", total_height)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  if (keywords.length > 0) {
+    claimsDiv.selectAll(".kw").data(keywords).enter()
+      .append("div")
+      .attr("id", kidValue)
+      .attr("class", "kw").html(tValue)
+      .style("left", xMapK)
+      .style("top", yMapK);
+  }
+  svg.append("g")
+    .selectAll(".dot")
+    .data(data)
+    .enter().append("circle")
+    .attr("class", "dot")
+    .attr("cx", xMap)
+    .attr("cy", yMap)
+    .attr("r", 1.5)
+    .attr("id", idValue)
+    .on("mouseover", function(d) {
+      tooltip.transition()
+              .duration(200)
+              .style("opacity", .9);
+      tooltip.html(texts[d.srcElement.id])
+            .style("left", (d.pageX + 5) + "px")
+            .style("top", (d.pageY - 28) + "px");
+      var sims = similarities[idToN[d.srcElement.id]];
+      claimsDiv.selectAll(".kw").style("opacity", function (x) { return (1 + sims[x.id])/2})//.style("color", "black")
+    })
+    .on("mouseout", function(d) {
+        tooltip.transition()
+              .duration(500)
+              .style("opacity", 0);
+        svg.selectAll("text").remove();
+        claimsDiv.selectAll(".kw").style("opacity", 1)//.style("color", "grey")
+    })
+    {% if debatemap_base %}
+    .on("mouseup", function(d) {
+      var eid = externalIds[d.srcElement.id];
+      if (eid) {
+        window.open("/claim_index/{{debatemap_base}}/debatemap/"+eid, "debatemap")
+      } else {
+        console.info("No eid for "+d.srcElement.id);
+      }
+    })
+    {% endif %}
+}
+</script>
+
+</head>
+<body onload="start();">
+  <div class="form-div">
+  <form class="bottom-form" id="params" method="GET">
+    <label for="method">method</label>
+    <select id="method" name="method" onchange="form.submit()">
+      <option {% if method=='TruncatedSVD' %}selected{% endif %}>TruncatedSVD</option>
+      <option {% if method=='PCA' %}selected{% endif %}>PCA</option>
+      <option {% if method=='SpectralEmbedding' %}selected{% endif %}>SpectralEmbedding</option>
+      <option {% if method=='DictionaryLearning' %}selected{% endif %}>DictionaryLearning</option>
+      <option {% if method=='FactorAnalysis' %}selected{% endif %}>FactorAnalysis</option>
+      <option {% if method=='KernelPCA' %}selected{% endif %}>KernelPCA</option>
+      <option {% if method=='TSNE' %}selected{% endif %}>TSNE</option>
+      <!-- option {% if method=='MDS' %}selected{% endif %}>MDS</option -->
+      <option {% if method=='Isomap' %}selected{% endif %}>Isomap</option>
+      <option {% if method=='LocallyLinearEmbedding' %}selected{% endif %}>LocallyLinearEmbedding</option>
+    </select>
+    <br />
+    <label for="keywords">keywords</label>
+    <input id="keyword" name="keyword" type="text" value="{{keywords}}" onchange="form.submit()"></input>
+  </form>
+  </div>
+  <div id="claims"></div>
+</body>
+</html>

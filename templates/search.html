@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% import 'macros.html' as macros %}
+{% block title %}
+{% if theme_id %}
+Claim neighbourhood
+{% else %}
+Text search
+{% endif %}
+{% endblock %}
+{% block script_content %}
+function maybe_send() {
+  {% if theme_id %}
+  document.search.submit()
+  {% else %}
+  if (document.search.text.value.length > 4) {
+    document.search.submit()
+  }
+  {% endif %}
+}
+{% if not is_proposal %}
+function set_mode() {
+  const lam_div = document.getElementById('lambda');
+  lam_div.className = (document.search.mode.value == 'mmr')?'':'hidden';
+  const model_div = document.getElementById('model_div');
+  model_div.className = (document.search.mode.value == 'text')?'hidden':'';
+}
+function change_mode() {
+  set_mode();
+  maybe_send();
+}
+{%endif%}
+function setup() {
+  {% if not is_proposal %}
+  const lam_display = document.getElementById('lam_display');
+  const lam_slider = document.getElementById('lam_percent');
+  set_mode();
+  lam_slider.oninput = function() {
+    lam_display.innerHTML = String(lam_slider.value/100);
+  }
+  lam_slider.onmouseup = function() {
+    maybe_send()
+  }
+  {%endif%}
+}
+var selection_changes = {};
+function reload() {
+  const sel_changes_el = document.getElementById("selection_changes");
+  if (sel_changes_el)
+    sel_changes_el.value = JSON.stringify(selection_changes);
+  document.search.submit();
+}
+
+{% if results %}
+    var num_selections = {{selection|length}};
+    function checkboxChange(target) {
+      const id = target.name.substr(7);
+      selection_changes[id] = target.checked;
+      if (target.checked) {
+        num_selections += 1;
+      } else {
+        num_selections -= 1;
+      }
+      document.getElementById("analyze").disabled = (num_selections == 0);
+      evalNumFragments();
+    }
+    function loaded() {
+        setup();
+        {% if theme_id %}
+          evalNumFragments();
+        {% endif %}
+    }
+    function evalNumFragments() {
+      var checks = document.getElementById("numFragments");
+      checks.innerText = num_selections;
+    }
+    {% if next != "" %}
+    function onNext() {
+      document.getElementById("selection_changes").value = JSON.stringify(selection_changes);
+      document.getElementById("offset").value = {{next}};
+      document.getElementById("reset_fragments").value = 'false';
+      document.search.submit();
+    }
+    {% endif %}
+    {% if prev != "" %}
+    function onPrev() {
+      document.getElementById("selection_changes").value = JSON.stringify(selection_changes);
+      document.getElementById("offset").value = {{prev}};
+      document.getElementById("reset_fragments").value = 'false';
+      document.search.submit();
+    }
+    {% endif %}
+    function onAnalyze(analyzer) {
+      document.getElementById("selection_changes").value = JSON.stringify(selection_changes);
+      document.getElementById("reset_fragments").value = 'false';
+      var form = document.search;
+      form.action = "{{collection.path}}/claim/{{theme_id}}/"+analyzer;
+      form.submit();
+    }
+    function checkAll() {
+      const form = document.search;
+      var inputs = form.getElementsByClassName("fragmentCheck");
+      for (var i = 0; i < inputs.length; i++) {
+        if (inputs[i].type == "checkbox" && !inputs[i].checked) {
+          inputs[i].checked = true;
+          checkboxChange(inputs[i]);
+        }
+      }
+    }
+    function uncheckAll() {
+      const form = document.search;
+      var inputs = form.getElementsByClassName("fragmentCheck");
+      for (var i = 0; i < inputs.length; i++) {
+        if (inputs[i].type == "checkbox" && inputs[i].checked) {
+          inputs[i].checked = false;
+          checkboxChange(inputs[i]);
+        }
+      }
+    }
+{% else %}
+    function loaded() {
+      setup();
+    }
+{% endif %}
+{% if is_proposal %}
+  function add_unrelated() {
+    document.search.action = "{{collection.path}}/claim";
+    document.search.submit();
+  }
+  function add_related(fragment_id) {
+    document.search.action = `{{collection.path}}/claim/${fragment_id}/add_related`;
+    document.search.submit();
+  }
+{% endif %}
+{% endblock %}
+{% block content %}
+<form method="POST" id="search" name="search">
+  {% if theme_id %}
+  Similar to claim: {{text}}
+  {% else %}
+  <label for="text">Text:</label>
+  <input type="text" name="text" value="{{text}}"/>
+  {% endif %}
+  {% if not is_proposal %}
+  <br/>
+  <label for="mode">Search type:</label> <select name="mode" onchange="change_mode()">
+    {% if not theme_id %}
+    <option {% if mode == "text" %}selected{% endif %} value="text">text search</option>
+    {% endif %}
+    <option {% if mode == "semantic" %}selected{% endif %} value="semantic">semantic search</option>
+    <option {% if mode == "mmr" %}selected{% endif %} value="mmr">MMR search</option>
+  </select><br/>
+  <div id="lambda" >
+    Lambda: <input id="lam_percent" name="lam_percent" value="{{lam*100}}" type="range" min="0" max="100"></input> <span id="lam_display">{{lam}}</span>
+  </div>
+  <div id="model_div">
+    <label for="model">Model:</label> <select id="model" name="model" onchange="maybe_send()">
+      {%for model_name in models %}
+      <option {% if model_name == model %}selected{% endif %} value="{{model_name}}">{{model_name}}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  Search in: <input type="checkbox" name="paragraph" id="paragraph"
+  {%if include_paragraphs %}checked{% endif %} onclick="reload()"
+  > Paragraphs</input>, <input type="checkbox" name="claim" id="claim"
+  {%if include_claims %}checked{% endif %} onclick="reload()"
+  > Claims</input>.
+  {% endif %}
+  {% if not results %}
+  <button type="submit" value="Search">Search</button>
+  {% endif %}
+  {% if results %}
+  <input type="hidden" name="offset" id="offset" value="{{offset}}"/>
+  <input type="hidden" name="limit" value="{{limit}}"/>
+  <input type="hidden" name="relate_to" value=""/>
+  <input type="hidden" name="selection_changes" id="selection_changes" value="{}"/>
+  <input type="hidden" id="reset_fragments" name="reset_fragments" value="true"/>
+  {% if is_proposal %}
+  <br/>
+  {{macros.select_node_type('standalone_generic')}}
+  <button type="button" onclick="add_unrelated()">Add without relations</button>
+  {% endif %}
+  <ol start={{offset+1}}>
+    {% for result in results %}
+      <li >
+        {% if result.doc_id %}
+          <input type="checkbox" class="fragmentCheck" name="select_{{result.fragment_id}}" onchange="checkboxChange(this)" title="{{result.rank}}"
+            {% if result.fragment_id in selection %}checked{% endif %}/>
+        {% endif %}
+        {% if is_proposal %}
+        <button type="button" onclick="add_related({{result.fragment_id}})">Relate to</button>
+        {% endif %}
+        {% if result.doc_id %}
+          <a href="{{collection.path}}/doc/{{result.doc_id}}#p_{{result.position}}">{{result.title or result.uri}}</a><br/>
+        {% else %}
+          [<a href="{{collection.path}}/claim/{{result.fragment_id}}">{{standalone_type_names[result.scale]}}</a>]
+        {% endif %}
+        <cite class="paragraph">{{result.text}}</cite>
+        {% if result.key_point_id %}
+          <br/><b>Variant of</b> the following from <a href="{{collection.path}}/doc/{{key_point_doc_id}}#p_{{result.key_point_position}}">{{key_point_doc_title or key_point_doc_url}}</a>:
+          <cite class="claim">{{result.key_point_text}}</cite>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+  {% if not is_proposal %}
+  {% if (include_paragraphs or theme_id) %}
+  <div>
+    <button type="button" value="checkAll" onclick="checkAll()">Check all</button>
+    <button type="button" value="uncheckAll" onclick="uncheckAll()">Uncheck all</button>
+  </div>
+  <input type="hidden" name="theme_id" value="{{theme_id}}"/>
+  <div>
+    <p>Analyze <span id="numFragments"></span> fragments</p>
+    {% if user_can("openai_query") %}
+    <p>
+      <select name="analyzer_nickname" id="analyzer_nickname">
+        {% for analyzer_id, nickname in prompt_analyzers %}
+        <option>{{nickname}}</option>
+        {% endfor %}
+      </select>
+      <button type="button" value="analyze" id="analyze" onclick="onAnalyze('prompt_fragments')">LLM analysis</button>
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% endif %}
+{% endif %}
+</form>
+{% endblock %}
+{% block pagination %}
+{% if results %}
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link {% if prev=='' %}disabled{% endif %}" href="#" onclick="onPrev()" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item">
+      <a class="page-link {% if not next %}disabled{% endif %}" href="#" onclick="onNext()" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+{% endif %}
+{% endblock %}

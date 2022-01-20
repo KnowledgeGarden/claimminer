@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% import 'macros.html' as macros %}
+{% block title %}Prompt {{analyzer.nickname}}{% endblock %}
+{% block content %}
+<div>
+  {% if analyzer.draft and user_can('edit_prompts') %}
+  <form method="POST">
+  <p>
+    <label for="nickname">Prompt name:</label>
+    <input type="text" name="nickname" id="nickname" value="{{analyzer.nickname}}"/>
+  </p>
+  <p>
+    <label for="prompt">Prompt text:</label>
+    <textarea style="width:80%" name="prompt" id="prompt">{{analyzer.params.get('prompt', '')}}</textarea>
+  </p>
+  <p>
+    {{ macros.link_form_elements(analyzer.params.get('node_type', ''), analyzer.params.get('link_type', ''), analyzer.params.get('backwards_link', False), '', false) }}
+  </p>
+  <p>
+    <input type="checkbox" name="use_fragments" id="use_fragments"
+    {% if analyzer.name == 'fragment_prompt_analyzer' %}checked{% endif %}
+    > <label for="use_fragments">Include fragments</label>
+  </p>
+  <p>
+    <label for="parser">Parser:</label>
+    <select name="parser">
+      <option {% if analyzer.params['parser'] == 'single_phrase' %}selected{% endif %} value="single_phrase">Single phrase</option>
+      <option {% if analyzer.params['parser'] == 'bullet_list' %}selected{% endif %} value="bullet_list">Bullet list</option>
+      <option {% if analyzer.params['parser'] == 'bullet_list_with_refs' %}selected{% endif %} value="bullet_list_with_refs">Bullet list with source ids</option>
+    </select>
+  </p>
+
+  <p>
+    <label for="model">Model:</label>
+    <select name="model">
+      {% for model in models %}
+      <option {%if analyzer.params.get('model') == model %}selected{%endif%} value="{{model}}">{{model}}</option>
+      {% endfor %}
+    </select>
+  </p>
+
+  <p>
+    <input type="checkbox" name="draft" id="draft" checked> <label for="draft">keep editing</label>
+  </p>
+  <button type="submit">Ok</button>
+  </form>
+  {% if fragment_count > 0 %}
+    <p>Used to create {{fragment_count}} nodes despite being a draft</p>
+  {% endif %}
+  {% else %}
+  <div>
+    <p>Prompt {{analyzer.nickname}}: <i>-{{analyzer.params['link_type']}}→</i> {{standalone_type_names[analyzer.params['node_type']]}}</p>
+    <pre class="small_prompt">
+      {{analyzer.params.get('prompt', '')}}
+    </pre>
+  </div>
+  {% endif %}
+  <!-- TODO: existing results of this analyzer -->
+  {% if user_can('admin') and not analyzer.draft %}
+  <form method="POST">
+    <input type="hidden" name="clear_results" value="true"/>
+    <button type="submit">Clear {{fragment_count}} nodes, make draft</button>
+  </form>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,633 @@
+# This is both an analysis of existing data patterns (Phrasings copyright Society Library)
+# And a proposal for future data patterns (Collective?)
+# Note 1: In case when the source is a category, we should probably allow to use grandparent type.
+# Note 2: question should always include claim in closed question form as well as open question.
+Link groups:
+  # Existing
+  - truth
+  - relevance
+  - generic  # to be removed
+  - freeform  # to be kept for progressive formalization but marked
+  # Proposed
+  - necessity  # subcase of truth
+  - premise  # replaces argument<-generic-claim
+  - refine  # subcase, still abstract
+  - specific  # concrete instance. Maybe apply to FactualClaim subtype of Claim?
+  - components  # subcomponents (eg phases of a plan)
+  - consider  # relevant fact or question, i.e. confirmed freeform
+  - answers  # replaces open question<-generic<-claim
+  - meaningfulness  # is the previous claim/question based on flawed assumptions?
+  - interpret  # a more precise reading which is not a strict subcase
+  - has_theme  # the theme applies to the node
+  - show_theme  # We will show the theme under the node
+Link patterns:
+  -
+    phrase: Which is supported by arguments like this
+    patterns:
+      -
+        status: current
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: problematic
+        comment: Should be done with tags
+        sequence:
+          - category
+          - generic
+          - claim
+  -
+    phrase: For example
+    patterns:
+      -
+        status: current
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: current_replace
+        sequence:
+          - category
+          - generic
+          - claim
+      -
+        status: future
+        sequence:
+          - category
+          - specific
+          - claim
+      -
+        status: future
+        sequence:
+        # applied in reverse
+          - claim
+          - has_theme
+          - category
+  -
+    phrase: To be more specific, this means
+    patterns:
+      -
+        status: problematic
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: current_replace
+        sequence:
+          - claim
+          - freeform
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - refine
+          - claim
+  -
+    phrase: Let's break this down
+    patterns:
+      -
+        status: problematic
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: future
+        sequence:
+          - category
+          - refine
+          - category
+      -
+        status: future
+        sequence:
+          - claim
+          - refine
+          - claim
+      -
+        status: future
+        sequence:
+        # less likely?
+          - question
+          - refine
+          - question
+      -
+        status: future
+        sequence:
+          - timeline
+          - components
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - has_theme
+          - category
+      -
+        status: future
+        sequence:
+          - claim
+          - show_theme
+          - category
+  -
+    phrase: Including reasons like
+    patterns:
+      -
+        status: current
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: current_replace
+        comment: eg of intercalated category. Replace with has_theme
+        sequence:
+          - claim
+          - freeform
+          - category
+          - generic
+          - claim
+      -
+        status: future
+        sequence:
+          - category
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: Those who agree with this point might reason
+    patterns:
+      -
+        status: current
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: It's also worth mentioning
+    patterns:
+      -
+        status: current_replace
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - consider
+          - claim
+  -
+    phrase: There are those who find this relevant because
+    patterns:
+      -
+        status: current
+        sequence:
+          - argument
+          - relevance+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: problematic
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: Specifically
+    patterns:
+      -
+        status: problematic
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - specific
+          - claim
+      -
+        status: future
+        sequence:
+          - question
+          - specific
+          - question
+      # less likely but also
+      -
+        status: future
+        sequence:
+          - claim
+          - refine
+          - claim
+      -
+        status: future
+        sequence:
+          - question
+          - refine
+          - question
+  -
+    phrase: Furthermore
+    patterns:
+      -
+        status: current
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - generic  # consider
+          - claim
+      -
+        status: future
+        sequence:
+          - argument
+          - generic  # consider
+          - claim
+  -
+    phrase: But let's break this argument down
+    patterns:
+      -
+        status: current_replace
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: future
+        sequence:
+          - argument
+          - refine
+          - argument
+  -
+    phrase: So what does that really mean? Well, it means
+    patterns:
+      -
+        status: problematic
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: current_replace
+        sequence:
+          - claim
+          - freeform
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - interpret
+          - claim
+      -
+        status: future
+        sequence:
+          - question
+          - interpret
+          - question
+      -
+        status: future
+        sequence:
+          - claim
+          - refine
+          - claim
+      -
+        status: future
+        sequence:
+          - question
+          - refine
+          - question
+  -
+    phrase: Evidence for this includes
+    patterns:
+      -
+        status: current
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - specific
+          - claim
+  -
+    phrase: However
+    patterns:
+      -
+        status: current
+        sequence:
+          - claim
+          - truth-
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - consider-
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - refine
+          - claim
+  -
+    phrase: Because
+    patterns:
+      -
+        status: current
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: Why? Well
+    patterns:
+      -
+        status: current
+        sequence:
+          - claim
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: Question worth asking
+    patterns:
+      -
+        status: current_replace
+        sequence:
+          - claim
+          - freeform
+          - category
+      -
+        status: current_replace
+        sequence:
+          - claim
+          - freeform
+          - question
+      -
+        status: future
+        sequence:
+          - claim
+          - consider
+          - question
+      -
+        status: future
+        sequence:
+          - argument
+          - consider
+          - question
+      -
+        status: future
+        sequence:
+          - question
+          - consider
+          - Question
+  # The following connectors are not found in the data
+  -
+    phrase: Timeline
+    patterns:
+      -
+        status: future
+        sequence:
+          - category
+          - generic  # components
+          - claim
+  -
+    phrase: Those who disagree with this point might reason
+    patterns:
+      -
+        status: future
+        sequence:
+          - claim
+          - truth-
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: Those who disagree may reason
+    patterns:
+      -
+        status: future
+        sequence:
+          - claim
+          - truth-
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: However, there are doubts
+    patterns:
+      -
+        status: future
+        sequence:
+          - claim
+          - consider-
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: However, there are those who take issue with this because
+    patterns:
+      -
+        status: future
+        sequence:
+          - claim
+          - truth-
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - relevance-
+          - argument
+          - generic  # premise
+          - claim
+      -
+        status: future
+        sequence:
+          - claim
+          - meaninfulness-
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: There are those who find this irrelevant because
+    patterns:
+      -
+        status: future
+        sequence:
+          - argument
+          - relevance-
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: There are those who find this misleading because
+    patterns:
+      -
+        status: future
+        sequence:
+          - argument
+          - relevance-
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: But that point is refuted with arguments like
+    patterns:
+      -
+        status: future
+        sequence:
+          - argument
+          - necessity-
+          - argument
+          - generic  # premise
+          - claim
+  -
+    phrase: Those who agree with this point might reason
+    patterns:
+      -
+        status: future
+        sequence:
+          - argument
+          - truth+
+          - argument
+          - generic  # premise
+          - claim
+  # Patterns that seem to be missing
+  -
+    phrase: Some propose this answer
+    patterns:
+      -
+        status: future
+        sequence:
+          - question
+          - answers
+          - claim
+  -
+    phrase: Some say this does not even make sense
+    patterns:
+      -
+        status: future
+        sequence:
+          - question
+          - meaningfulness
+          - argument
+      -
+        status: future
+        sequence:
+          - claim
+          - meaningfulness
+          - argument
+      -
+        status: future
+        sequence:
+          - argument
+          - meaningfulness
+          - argument
+      -
+        status: future
+        sequence:
+          - collection
+          - meaningfulness
+          - argument
+  -
+    phrase: This considered proven by
+    patterns:
+      -
+        status: future
+        sequence:
+          - claim
+          - necessity
+          - argument
+  -
+    phrase: This is relevant to
+    patterns:
+      -
+        status: future
+        sequence:
+          - claim
+          - has_theme
+          - category
+      -
+        status: future
+        sequence:
+          - question
+          - has_theme
+          - category
+      -
+        status: future
+        comment: I doubt this is necessary, can be inferred from premises?
+        sequence:
+          - argument
+          - has_theme
+          - category
+  -
+    phrase: Let's see the different aspects
+    patterns:
+      -
+        status: future
+        sequence:
+          - claim
+          - show_theme
+          - category
+      -
+        status: future
+        sequence:
+          - question
+          - show_theme
+          - category
+      -
+        status: future
+        comment: I doubt this is necessary, can be inferred from premises?
+        sequence:
+          - argument
+          - show_theme
+          - category
